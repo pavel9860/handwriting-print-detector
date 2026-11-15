@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hwdet"
-version = "1.0.0"
+version = "1.0.1"
 description = "Handwriting vs print text-line detector for document pages in 90 languages (YOLO26): training, evaluation, inference, model registry"
 readme = "README.md"
 license = "Apache-2.0"
@@ -24,8 +24,8 @@ infer = ["ultralytics>=8.4.175,<8.5"]
 train = ["ultralytics>=8.4.175,<8.5", "mlflow>=2.15"]
 data = [
     "pymupdf>=1.24,<1.28",
-    "hwsynth[pages] @ git+https://github.com/pavel9860/realistic_handwriting_153_scripts@v0.2.0",
-    "ds-page-generation[multilang,hand] @ git+https://github.com/pavel9860/ds-page-generation@v0.2.0",
+    "hwsynth @ git+https://github.com/pavel9860/realistic_handwriting_153_scripts@v0.2.1",
+    "ds-page-generation[pagegen,multilang,hand] @ git+https://github.com/pavel9860/ds-page-generation@v0.2.1",
 ]
 dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "pre-commit>=3.7"]
 

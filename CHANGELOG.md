@@ -4,6 +4,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions: [Sem
 Package versions and model versions (`models/registry.json`, `name@version`) are numbered separately; a model names the
 dataset version it was trained on.
 
+## 1.0.1 (2026-11-15)
+### Changed
+- Page generation (`pagegen`) moved from hwsynth to ds-page-generation (`dspages.pagegen`): hwsynth now holds only
+  handwriting lines, ds-page-generation imports only hwsynth. `data` extra pins both libraries at v0.2.1.
+
 ## 1.0.0 (2026-11-15): first public release
 ### Added
 - `hwdet.Detector` / `hwdet predict`: inference API returning typed boxes and a page-level handwriting decision.
@@ -15,10 +20,11 @@ dataset version it was trained on.
 - `hwdet data manifest|validate|pack`: content-hashed dataset versions.
 - Apache-2.0 license, NOTICE (AGPL-3.0 terms for the weights), contribution guide, CI on 3.11–3.13, pre-commit.
 ### Changed
-- Page and handwriting generation moved to the libraries: `hwdet.pagegen` → `hwsynth.pagegen`
-  ([realistic_handwriting_153_scripts](https://github.com/pavel9860/realistic_handwriting_153_scripts) 0.2.0); text,
-  translation, forms, page composition and the language dataset → `dspages.multilang`
-  ([ds-page-generation](https://github.com/pavel9860/ds-page-generation) 0.2.0) with their drivers and tests.
+- Generation moved to the libraries. Handwriting lines stay in
+  [hwsynth](https://github.com/pavel9860/realistic_handwriting_153_scripts); everything that builds pages goes to
+  [ds-page-generation](https://github.com/pavel9860/ds-page-generation) 0.2.1, which imports only hwsynth: `hwdet.pagegen` →
+  `dspages.pagegen` (handwritten pages, filled forms); text, translation, forms, page composition and the language
+  dataset → `dspages.multilang`, with their drivers and tests.
 - Detection-set builders under `hwdet.data` (`detds`, `ds3k`, `pack`); drivers in `scripts/dataset/`.
 - Weights no longer in git; data paths only from environment variables.
 ### Removed
