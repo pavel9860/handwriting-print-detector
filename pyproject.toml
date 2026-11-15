@@ -23,7 +23,7 @@ dependencies = ["numpy>=2.0", "opencv-python-headless>=4.9", "pyyaml>=6.0"]
 infer = ["ultralytics>=8.4.175,<8.5"]
 train = ["ultralytics>=8.4.175,<8.5", "mlflow>=2.15"]
 data = [
-    "pymupdf>=1.24,<1.28",
+    "pymupdf>=1.24,<2.2",
     "hwsynth @ git+https://github.com/pavel9860/realistic_handwriting_153_scripts@v0.2.1",
     "ds-page-generation[pagegen,multilang,hand] @ git+https://github.com/pavel9860/ds-page-generation@v0.2.1",
 ]
