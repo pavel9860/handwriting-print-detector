@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions: [Sem
 Package versions and model versions (`models/registry.json`, `name@version`) are numbered separately; a model names the
 dataset version it was trained on.
 
+## 1.0.3 (2026-11-15)
+- `data` extra pins ds-page-generation v0.3.1 (complete dependency list).
+
 ## 1.0.2 (2026-11-15)
 ### Changed
 - Dataset-assembly numbers of `detds` / `ds3k` in `hwdet/data/config.py`; code formatted with ruff (PEP 8), format checked in CI.

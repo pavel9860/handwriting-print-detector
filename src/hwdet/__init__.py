@@ -1,6 +1,6 @@
 """hwdet: handwriting vs print text-line detector for document pages."""
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 CLASSES = ("handwriting", "print")
 HW, PRINT = 0, 1
