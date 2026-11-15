@@ -1,0 +1,55 @@
+{
+ "schema": 1,
+ "models": [
+  {
+   "name": "hwdet-s",
+   "version": "0.4.0",
+   "file": "hwdet-s-0.4.0.pt",
+   "sha256": "609be70f86c7d3e2d39c0a1ccda15af07dc642bb45044d2442eb961491f9a432",
+   "url": "https://github.com/pavel9860/handwriting-print-detector/releases/download/v1.0.0/hwdet-s-0.4.0.pt",
+   "arch": "yolo26s",
+   "imgsz": 1024,
+   "conf": 0.4,
+   "dataset": "synth-r3-9.9k",
+   "metrics": {
+    "val": "synth-r3 (600 synthetic pages)",
+    "precision": 0.926,
+    "recall": 0.871,
+    "mAP50": 0.916,
+    "mAP50_95": 0.706
+   },
+   "notes": "Round 4: YOLO26s on the 0.4.0 synthetic build (hwsynth lines on real PDF pages), 11 epochs. Superseded; used as the picture-page filter of dspages.multilang."
+  },
+  {
+   "name": "hwdet-s",
+   "version": "1.0.0",
+   "file": "hwdet-s-1.0.0.pt",
+   "sha256": "955acf569a9602b0f1d2c1c23d77aced37f7c4db23d3244484671abb48da614e",
+   "url": "https://github.com/pavel9860/handwriting-print-detector/releases/download/v1.0.0/hwdet-s-1.0.0.pt",
+   "arch": "yolo26s",
+   "imgsz": 1024,
+   "conf": 0.4,
+   "dataset": "ds3k-3250-v3",
+   "metrics": {
+    "val": "ds3k-3250-v3 val (366 pages, 31 real)",
+    "mAP50": 0.934,
+    "mAP50_95": 0.687,
+    "AP50_handwriting": 0.963,
+    "AP50_print": 0.905,
+    "handwriting_precision": 0.949,
+    "handwriting_recall": 0.924,
+    "print_precision": 0.898,
+    "print_recall": 0.873,
+    "handwriting_fp_per_page": 0.71,
+    "handwriting_fn_per_page": 1.08,
+    "real_hw_recall": 0.713
+   },
+   "notes": "YOLO26s (COCO) fine-tuned 30 epochs on ds3k-3250-v3; recipe configs/train/hwdet-s.yaml; full metrics models/metrics/hwdet-s-1.0.0.json.",
+   "onnx": {
+    "file": "hwdet-s-1.0.0.onnx",
+    "sha256": "2f1aeb4a318776c4495e70d050bc45d58dc703d7ac6c17299369b2b8ab4ad35b",
+    "url": "https://github.com/pavel9860/handwriting-print-detector/releases/download/v1.0.0/hwdet-s-1.0.0.onnx"
+   }
+  }
+ ]
+}

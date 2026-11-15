@@ -1,0 +1,16 @@
+hwdet: handwriting vs print text-line detector
+Copyright 2026 pavel9860
+
+The source code and documentation are licensed under the Apache License, Version 2.0 (LICENSE).
+Commercial use, modification and redistribution are permitted. Redistributions must keep LICENSE and this
+NOTICE and credit the original project: https://github.com/pavel9860/handwriting-print-detector
+
+Model weights (release assets hwdet-s-*.pt / .onnx) are NOT covered by Apache-2.0:
+- They are fine-tuned from Ultralytics YOLO26 with the `ultralytics` package, which is AGPL-3.0
+  (or the Ultralytics Enterprise License). Using or serving the weights, including over a network, is subject to
+  AGPL-3.0 unless you hold an Ultralytics Enterprise License. See https://www.ultralytics.com/license
+- Code of this repository that merely imports `ultralytics` stays Apache-2.0; a combined work you distribute
+  must also comply with AGPL-3.0.
+
+Training data: synthetic pages made with hwsynth and ds-page-generation (Apache-2.0) over a private corpus of
+public PDF documents, plus 185 real handwritten pages. The dataset itself is not redistributed.
