@@ -18,8 +18,8 @@ pytest -q -m slow             # downloads hwdet-s and runs it on samples/
 ## Rules
 - One topic per PR; tests for new behaviour; no notebooks or data in git.
 - Numbers belong in a config (dataclass or `configs/*.yaml`), not inline.
-- Page and handwriting generation belongs upstream: [hwsynth](https://github.com/pavel9860/realistic_handwriting_153_scripts)
-  (handwriting, `hwsynth.pagegen`) or [ds-page-generation](https://github.com/pavel9860/ds-page-generation) (`dspages.multilang`).
+- Generation belongs upstream: handwriting lines in [hwsynth](https://github.com/pavel9860/realistic_handwriting_153_scripts);
+  pages, forms and layouts in [ds-page-generation](https://github.com/pavel9860/ds-page-generation) (`dspages.pagegen`, `dspages.multilang`).
 - **Models**: a new model gets a new `version` in `models/registry.json` (semver: major = label/IO change,
   minor = retrain on new data, patch = re-export), its `run.json` and metrics file, and a CHANGELOG entry. Weights go to a GitHub release, never to git.
 - **Datasets**: refer to a dataset by its manifest `version` (`hwdet data manifest DS`).
