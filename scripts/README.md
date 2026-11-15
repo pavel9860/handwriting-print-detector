@@ -11,4 +11,4 @@ Drivers that build, check and release detection sets (need `pip install -e ".[da
 | `text_pages_notes.py` | printed pages with reader notes |
 | `check_set.py`, `box_ds.py` | read-only report of a set; labels drawn on its images |
 | `pack_ds.py`, `release.py` | validate and pack into `.npz` shards; rebuild, check, pack and push a Kaggle version |
-| `used_lists.py` | the sources a set used (`datasets/<name>/used_*.json`) |
+| `used_lists.py` | the sources a set used (`used_docs.json`, `used_forms.json`, `used_pages.json`) |

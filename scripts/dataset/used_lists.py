@@ -1,12 +1,12 @@
 """The sources a built detection set used, from the meta of its pages
-python scripts/forms/used_lists.py DS_DIR [OUT_DIR]"""
+python scripts/dataset/used_lists.py DS_DIR [OUT_DIR]"""
 import json
 import sys
 from collections import defaultdict
 from pathlib import Path
 
 ds = Path(sys.argv[1])
-out = Path(sys.argv[2] if len(sys.argv) > 2 else Path(__file__).resolve().parents[2] / "lists")
+out = Path(sys.argv[2] if len(sys.argv) > 2 else Path(__file__).resolve().parents[2] / "datasets" / Path(sys.argv[1]).name)
 out.mkdir(exist_ok=True)
 forms, docs, pages = {}, defaultdict(lambda: dict(lang=set(), kinds=set(), pages=0)), {}
 for f in sorted(ds.glob("*/meta/*.json")):

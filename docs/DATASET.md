@@ -3,8 +3,8 @@
 The training set of `hwdet-s@1.0.0`. Built by `hwdet.data.ds3k` (`scripts/dataset/build_3250.py`) with
 [hwsynth](https://github.com/pavel9860/realistic_handwriting_153_scripts) and
 [ds-page-generation](https://github.com/pavel9860/ds-page-generation) (`dspages.multilang`, `dspages.hand`).
-The images are not published: backgrounds come from a private corpus of public PDF documents. The sources each page
-used are listed in [`datasets/ds3k-3250-v3/`](../datasets/ds3k-3250-v3) (content ids of documents, forms and pages).
+The images and the lists of their source documents are not published: backgrounds come from a private corpus of
+public PDF documents.
 
 ## Composition
 3,249 pages at 768 x 1024 (A4 ratio), **90 languages** (about 36 pages each), YOLO labels, 2 classes.

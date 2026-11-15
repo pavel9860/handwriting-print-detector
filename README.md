@@ -106,9 +106,8 @@ src/hwdet/        predict.py (Detector), registry.py, train.py, evaluate.py, met
 src/hwdet/data/   detds.py, ds3k.py (set assembly), pack.py (validation, .npz shards), manifest.py
 configs/train/    training recipes
 models/           registry.json, metrics/ (weights are release assets)
-datasets/         source lists of each released dataset
 scripts/dataset/  dataset build / check / release drivers
-docs/             DATASET.md, TRAINING.md, CORPUS_DETECTIONS.md
+docs/             DATASET.md, TRAINING.md
 tests/            fast tests (no weights, no corpus); pytest -m slow runs the released model
 ```
 
@@ -124,8 +123,7 @@ tests/            fast tests (no weights, no corpus); pytest -m slow runs the re
 ## What to fix next
 1. **Real labelled test set** (300+ pages: filled forms, notes, letters, phone photos) to measure what matters;
    synthetic val cannot.
-2. **More real handwriting in training**: pseudo-label the 489k handwriting boxes found in the 1.5 M-page corpus
-   ([docs/CORPUS_DETECTIONS.md](docs/CORPUS_DETECTIONS.md)), review a sample, fine-tune.
+2. **More real handwriting in training**: pseudo-label real pages with the current model, review a sample, fine-tune.
 3. Photo augmentations (perspective, shadows, blur, JPEG at low quality) and handwriting over print (signatures, strike-through).
 4. Hard-negative mining for script-like fonts and Arabic print; calibrated page-level decision (`has_handwriting`)
    with a threshold chosen on the real test set.
