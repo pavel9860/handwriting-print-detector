@@ -1,0 +1,32 @@
+# hwdet-s 1.0.0: YOLO26s fine-tuned on ds3k-3250-v3 (the recipe of the released weights, Kaggle 2 x T4, 73 min)
+name: hwdet-s
+model: yolo26s.pt
+data: data/ds3k-3250-v3/data.yaml
+seed: 0
+train:
+  epochs: 30
+  patience: 10
+  imgsz: 1024
+  batch: 16
+  nbs: 16
+  optimizer: AdamW
+  lr0: 0.0005
+  lrf: 0.01
+  cos_lr: true
+  warmup_epochs: 1
+  weight_decay: 0.0005
+  close_mosaic: 3
+  mosaic: 0.5
+  scale: 0.5
+  translate: 0.05
+  degrees: 2.0
+  fliplr: 0.0          # mirrored text is not text
+  hsv_h: 0.01
+  hsv_s: 0.5
+  hsv_v: 0.3
+  max_det: 2400        # dense print pages
+  cache: ram
+  amp: true
+eval:
+  conf: [0.25, 0.4]
+  iou: [0.5, 0.3]
