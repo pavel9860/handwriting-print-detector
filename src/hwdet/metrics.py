@@ -1,4 +1,5 @@
 """Box matching and detection metrics (numpy only): precision/recall per class, FP/FN per page, page pass rate."""
+
 import numpy as np
 
 
@@ -67,7 +68,16 @@ class Counts:
             tp, fn, fp = map(int, self.tot[c])
             pp = np.array(self.pages[c]).reshape(-1, 3)
             p, r = tp / max(tp + fp, 1), tp / max(tp + fn, 1)
-            out[c] = dict(precision=p, recall=r, f1=2 * p * r / max(p + r, 1e-9), tp=tp, fn=fn, fp=fp, pages=len(pp),
-                          fn_per_page=float(pp[:, 1].mean()) if len(pp) else 0.0, fp_per_page=float(pp[:, 2].mean()) if len(pp) else 0.0,
-                          pages_ok=float(((pp[:, 1] <= max_err) & (pp[:, 2] <= max_err)).mean()) if len(pp) else 0.0)
+            out[c] = dict(
+                precision=p,
+                recall=r,
+                f1=2 * p * r / max(p + r, 1e-9),
+                tp=tp,
+                fn=fn,
+                fp=fp,
+                pages=len(pp),
+                fn_per_page=float(pp[:, 1].mean()) if len(pp) else 0.0,
+                fp_per_page=float(pp[:, 2].mean()) if len(pp) else 0.0,
+                pages_ok=float(((pp[:, 1] <= max_err) & (pp[:, 2] <= max_err)).mean()) if len(pp) else 0.0,
+            )
         return out

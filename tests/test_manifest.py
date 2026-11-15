@@ -1,4 +1,5 @@
 """Dataset manifest: counts and a content hash that changes with any label."""
+
 import json
 
 import cv2

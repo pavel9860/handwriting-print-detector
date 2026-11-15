@@ -1,4 +1,5 @@
 """Model registry: lookup by name and version, sha256-checked local copies and downloads."""
+
 import json
 
 import pytest
@@ -10,8 +11,16 @@ from hwdet import registry
 def reg(tmp_path):
     w = tmp_path / "m-1.0.0.pt"
     w.write_bytes(b"weights")
-    rows = [dict(name="m", version=v, file=f"m-{v}.pt", sha256=registry.sha256(w) if v == "1.0.0" else "0" * 64, url=w.as_uri())
-            for v in ("0.9.0", "1.0.0", "1.10.0")]
+    rows = [
+        dict(
+            name="m",
+            version=v,
+            file=f"m-{v}.pt",
+            sha256=registry.sha256(w) if v == "1.0.0" else "0" * 64,
+            url=w.as_uri(),
+        )
+        for v in ("0.9.0", "1.0.0", "1.10.0")
+    ]
     p = tmp_path / "registry.json"
     p.write_text(json.dumps(dict(schema=1, models=rows)))
     return p, w
@@ -20,7 +29,9 @@ def reg(tmp_path):
 def test_shipped_registry_is_valid():
     models = registry.load()
     assert models and all(len(m.sha256) == 64 and m.url.startswith("https://") for m in models)
-    assert registry.get(registry.DEFAULT).version == max((m.version for m in models if m.name == registry.DEFAULT), key=registry._key)
+    assert registry.get(registry.DEFAULT).version == max(
+        (m.version for m in models if m.name == registry.DEFAULT), key=registry._key
+    )
 
 
 def test_latest_is_semver_not_lexicographic(reg):

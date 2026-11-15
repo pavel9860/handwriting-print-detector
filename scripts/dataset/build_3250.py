@@ -1,5 +1,6 @@
 """The detection set with an exact number of pages (hwdet.data.ds3k)
 python scripts/forms/build_3250.py OUT_DIR [--total 3250] [--workers 8] [--rounds 3]"""
+
 import argparse
 import json
 import subprocess
@@ -37,14 +38,19 @@ def main():
     real = real_counts()
     quota = ds3k.quotas(sorted({r["lang"] for r in old}), a.total, real)
     rows = ds3k.make_plan(old, quota)
-    (out / "data.yaml").write_text("path: .\ntrain: train/images\nval: val/images\nnames:\n  0: handwriting\n  1: print\n")
+    (out / "data.yaml").write_text(
+        "path: .\ntrain: train/images\nval: val/images\nnames:\n  0: handwriting\n  1: print\n"
+    )
     for rnd in range(1, a.rounds + 1):
         (out / "plan.json").write_text(json.dumps(rows))
         js = [dict(j, out=str(out)) for j in ds3k.jobs(out / "plan.json")]
         print(f"round {rnd}: {len(js)} jobs", flush=True)
         st, why = ds3k.run(js, a.workers)
         missing = ds3k.trim(out, quota)
-        print(f"round {rnd}: {dict(st)}, rejected because {dict(why)}; still missing {sum(missing.values())}: {missing}", flush=True)
+        print(
+            f"round {rnd}: {dict(st)}, rejected because {dict(why)}; still missing {sum(missing.values())}: {missing}",
+            flush=True,
+        )
         if not missing:
             break
         for (l, k), n in missing.items():

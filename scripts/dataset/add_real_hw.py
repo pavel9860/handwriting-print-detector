@@ -1,5 +1,6 @@
 """Adds the real handwritten pages of a boxed folder to a detection set in the ds3k layout (cut to the boxes, A4 ratio), class 0 only, split by document. python scripts/forms/add_real_hw.py OUT_DIR [BOXED_DIR] [HW_DIR]
 python scripts/forms/add_real_hw.py OUT_DIR [BOXED_DIR] [HW_DIR]"""
+
 import json
 import random
 import sys
@@ -46,10 +47,23 @@ def main():
         for sub in ("images", "labels", "meta"):
             (out / split / sub).mkdir(parents=True, exist_ok=True)
         cv2.imwrite(str(out / split / "images" / f"real_{name}.jpg"), img, [cv2.IMWRITE_JPEG_QUALITY, 90])
-        (out / split / "meta" / f"real_{name}.json").write_text(json.dumps(dict(lang=m["lang"], kind="real_hw", doc=doc, hw=len(rows), print=0, src=dict(path=m["path"], page=m["page"]))))
+        (out / split / "meta" / f"real_{name}.json").write_text(
+            json.dumps(
+                dict(
+                    lang=m["lang"],
+                    kind="real_hw",
+                    doc=doc,
+                    hw=len(rows),
+                    print=0,
+                    src=dict(path=m["path"], page=m["page"]),
+                )
+            )
+        )
         (out / split / "labels" / f"real_{name}.txt").write_text("\n".join(rows) + "\n")
         n[split] = n.get(split, 0) + 1
-    (out / "data.yaml").write_text("path: .\ntrain: train/images\nval: val/images\nnames:\n  0: handwriting\n  1: print\n")
+    (out / "data.yaml").write_text(
+        "path: .\ntrain: train/images\nval: val/images\nnames:\n  0: handwriting\n  1: print\n"
+    )
     print("real handwritten pages added:", n, "->", out)
 
 

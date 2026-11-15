@@ -1,5 +1,6 @@
 """Rebuilds the detection set into a new folder, checks it, packs it and pushes a new Kaggle version
 python scripts/forms/release.py SET_DIR PACK_DIR MESSAGE [--workers 8]"""
+
 import argparse
 import subprocess
 import sys

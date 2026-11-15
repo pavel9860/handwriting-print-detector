@@ -1,4 +1,5 @@
 """Handwriting and print text-line boxes of one page. python samples/predict.py IMAGE [MODEL] [CONF]"""
+
 import sys
 
 from hwdet import Detector

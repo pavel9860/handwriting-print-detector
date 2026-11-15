@@ -1,5 +1,6 @@
 """Versioned dataset manifest: content hash of every image and label, counts per split / class / kind / language.
 The hash names the dataset version a model was trained on (registry `dataset`, run.json `data_sha`)."""
+
 import hashlib
 import json
 from collections import Counter
@@ -33,11 +34,16 @@ def build(ds, name=None):
                 m = json.loads(meta.read_text())
                 kinds[m.get("kind", "?")] += 1
                 langs[m.get("lang", "?")] += 1
-        out["splits"][split] = dict(pages=len(imgs), pages_without_handwriting=empty, boxes=dict(cls), kinds=dict(kinds),
-                                    languages=len(langs))
+        out["splits"][split] = dict(
+            pages=len(imgs), pages_without_handwriting=empty, boxes=dict(cls), kinds=dict(kinds), languages=len(langs)
+        )
     out["sha256"] = h.hexdigest()
     out["version"] = out["sha256"][:12]
     (ds / "manifest.json").write_text(json.dumps(out, indent=1, ensure_ascii=False))
-    (ds / "data.yaml").write_text("path: .\n" + "".join(f"{s}: {s}/images\n" for s in out["splits"]) +
-                                  "names:\n" + "".join(f"  {i}: {c}\n" for i, c in enumerate(CLASSES)))
+    (ds / "data.yaml").write_text(
+        "path: .\n"
+        + "".join(f"{s}: {s}/images\n" for s in out["splits"])
+        + "names:\n"
+        + "".join(f"  {i}: {c}\n" for i, c in enumerate(CLASSES))
+    )
     return out

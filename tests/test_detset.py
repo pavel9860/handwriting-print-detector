@@ -1,4 +1,5 @@
 """Detection-set validation and packing."""
+
 import json
 import zipfile
 
@@ -18,8 +19,11 @@ def make(tmp, pages):
     return tmp
 
 
-PAGES = [("train", "a", "notes", "d1", ["0 0.5 0.5 0.2 0.1", "1 0.3 0.3 0.1 0.05"]), ("train", "b", "print", "d2", ["1 0.5 0.5 0.2 0.1"]),
-         ("val", "c", "hand", "d3", ["0 0.5 0.5 0.4 0.4", "0 0.2 0.2 0.1 0.1"])]
+PAGES = [
+    ("train", "a", "notes", "d1", ["0 0.5 0.5 0.2 0.1", "1 0.3 0.3 0.1 0.05"]),
+    ("train", "b", "print", "d2", ["1 0.5 0.5 0.2 0.1"]),
+    ("val", "c", "hand", "d3", ["0 0.5 0.5 0.4 0.4", "0 0.2 0.2 0.1 0.1"]),
+]
 
 
 def test_a_good_set_validates_packs_loads_and_is_not_compressed(tmp_path):
@@ -36,8 +40,11 @@ def test_a_good_set_validates_packs_loads_and_is_not_compressed(tmp_path):
 
 
 def test_the_check_finds_what_is_wrong(tmp_path):
-    bad = PAGES + [("train", "e", "notes", "d1", ["0 1.2 0.5 0.1 0.1"]), ("val", "f", "form", "d1", ["1 0.5 0.5 0.1 0.1"]),
-                   ("train", "g", "hand", "d9", ["0 0.95 0.5 0.2 0.1"])]
+    bad = PAGES + [
+        ("train", "e", "notes", "d1", ["0 1.2 0.5 0.1 0.1"]),
+        ("val", "f", "form", "d1", ["1 0.5 0.5 0.1 0.1"]),
+        ("train", "g", "hand", "d9", ["0 0.95 0.5 0.2 0.1"]),
+    ]
     found = dspack.validate(make(tmp_path / "ds", bad))
     assert set(found) == {"outside 0..1", "box leaves the page", "no handwriting box", "document in both splits"}
     assert found["document in both splits"] == ["d1"]

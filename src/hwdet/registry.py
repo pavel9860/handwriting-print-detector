@@ -1,5 +1,6 @@
 """Model registry: models/registry.json names every released model (name@version), its file, sha256, data and metrics.
 Weights are GitHub release assets, fetched on first use into HWDET_CACHE (default ~/.cache/hwdet) and checked by sha256."""
+
 import hashlib
 import json
 import os
@@ -26,7 +27,7 @@ class ModelInfo:
     dataset: str = ""
     metrics: dict = field(default_factory=dict)
     notes: str = ""
-    onnx: dict = field(default_factory=dict)                  # {file, sha256, url} of the ONNX export, if released
+    onnx: dict = field(default_factory=dict)  # {file, sha256, url} of the ONNX export, if released
 
     @property
     def id(self):
@@ -62,7 +63,11 @@ def sha256(path, chunk=1 << 20):
 
 def fetch(info: ModelInfo, cache=CACHE, local_dirs=(REGISTRY.parent,), fmt="pt"):
     """Local path of the weights (fmt 'pt' or 'onnx'): a checked copy in local_dirs or the cache, else downloaded."""
-    file, digest, url = (info.file, info.sha256, info.url) if fmt == "pt" else (info.onnx["file"], info.onnx["sha256"], info.onnx["url"])
+    file, digest, url = (
+        (info.file, info.sha256, info.url)
+        if fmt == "pt"
+        else (info.onnx["file"], info.onnx["sha256"], info.onnx["url"])
+    )
     for d in (*local_dirs, cache):
         p = Path(d) / file
         if p.exists() and sha256(p) == digest:

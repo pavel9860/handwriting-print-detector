@@ -17,5 +17,5 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: uv venv && uv pip install -e ".[dev]"
-      - run: uv run ruff check .
+      - run: uv run ruff check . && uv run ruff format --check .
       - run: uv run pytest -q --cov=hwdet --cov-report=term-missing

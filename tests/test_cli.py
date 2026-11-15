@@ -1,4 +1,5 @@
 """CLI wiring without weights."""
+
 import pytest
 
 from hwdet import __version__, cli

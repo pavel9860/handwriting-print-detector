@@ -1,5 +1,6 @@
 """N text pages with notes over the languages of langds/det_layouts
 python scripts/forms/text_pages_notes.py OUT_DIR [N] [SEED]"""
+
 import json
 import random
 import sys
@@ -16,7 +17,11 @@ D = LANGDS / "det_layouts"
 
 
 def main():
-    out, n, seed = Path(sys.argv[1]), int(sys.argv[2]) if len(sys.argv) > 2 else 100, int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    out, n, seed = (
+        Path(sys.argv[1]),
+        int(sys.argv[2]) if len(sys.argv) > 2 else 100,
+        int(sys.argv[3]) if len(sys.argv) > 3 else 0,
+    )
     for d in ("pages", "boxed"):
         (out / d).mkdir(parents=True, exist_ok=True)
     by = defaultdict(list)
@@ -36,7 +41,9 @@ def main():
                 continue
             r = by[lang].pop()
             try:
-                gray, hw, prints, _ = layout_page(dict(kind="notes", lang=lang, src=r), random.Random(f"{seed}{r['id']}"), cfg)
+                gray, hw, prints, _ = layout_page(
+                    dict(kind="notes", lang=lang, src=r), random.Random(f"{seed}{r['id']}"), cfg
+                )
             except Reject:
                 continue
             name = f"{lang}_{r['id']}.jpg"
@@ -47,11 +54,25 @@ def main():
             for x0, y0, x1, y1 in hw:
                 cv2.rectangle(box, (int(x0), int(y0)), (int(x1), int(y1)), (0, 160, 0), 2)
             cv2.imwrite(str(out / "boxed" / name), box)
-            notes[r["id"]] = dict(lang=lang, notes=[[round(v) for v in b] for b in hw], prints=[[round(v) for v in b] for b in prints])
+            notes[r["id"]] = dict(
+                lang=lang, notes=[[round(v) for v in b] for b in hw], prints=[[round(v) for v in b] for b in prints]
+            )
             got += 1
     (out / "notes.json").write_text(json.dumps(notes, ensure_ascii=False))
     k = [len(v["notes"]) for v in notes.values()]
-    print(got, "pages,", len({v["lang"] for v in notes.values()}), "languages; notes per page: min", min(k), "median", sorted(k)[len(k) // 2], "max", max(k), "->", out)
+    print(
+        got,
+        "pages,",
+        len({v["lang"] for v in notes.values()}),
+        "languages; notes per page: min",
+        min(k),
+        "median",
+        sorted(k)[len(k) // 2],
+        "max",
+        max(k),
+        "->",
+        out,
+    )
 
 
 if __name__ == "__main__":

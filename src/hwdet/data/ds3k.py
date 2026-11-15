@@ -1,5 +1,6 @@
 """The 3K detection set from langds/ds3k_plan.json (samples_review/select3k.py)
 python -m hwdet.data.ds3k OUT [--workers 6] [--only KIND] [--limit N]"""
+
 import argparse
 import json
 import random
@@ -16,16 +17,14 @@ from dspages.multilang.detlayouts import form_is_near_a4, layout_is_near_a4, nea
 from dspages.multilang.paths import FILLING as FILLING_DIR
 
 from . import detds as T
+from .config import DS3K_SKEW as SKEW  # noqa: F401
+from .config import MAX_SOURCE_SKEW, MIN_ASPECT, SHARES
 
 PLAN = T.D / "langds/ds3k_plan.json"
 FILLING = FILLING_DIR
 
 
 TARGET = PAGE.long_side
-SKEW = ((0.75, 0.0, 0.3), (0.2, 0.3, 1.0), (0.05, 1.0, 1.8))
-FILL = (0.50, 1.00)
-MIN_ASPECT = 1.15
-MAX_SOURCE_SKEW = 4.0
 
 
 def usable_forms():
@@ -59,7 +58,9 @@ def jobs(plan_file=PLAN):
         k[(lang, kind)] += 1
         name = f"{lang}_{kind}_{j:03d}"
         if kind in ("notes", "print"):
-            src = layouts.get(p.get("id")) or next((r for r in layouts_of.get(lang, []) if r["id"] not in planned | taken), None)
+            src = layouts.get(p.get("id")) or next(
+                (r for r in layouts_of.get(lang, []) if r["id"] not in planned | taken), None
+            )
             if src is None:
                 continue
             taken.add(src["id"])
@@ -81,8 +82,18 @@ def jobs(plan_file=PLAN):
             m = fmeta[fids[j]]
             src = dict(fid=fids[j], path=m["path"], page=int(m["page"]))
             doc = Path(m["path"]).stem.split("_")[0]
-        out.append(dict(name=name, lang=lang, kind=kind, src=src, row=src if kind == "hand" else None, doc=doc,
-                        variant=p.get("variant", 0), split="val" if T.is_val(doc) else "train"))
+        out.append(
+            dict(
+                name=name,
+                lang=lang,
+                kind=kind,
+                src=src,
+                row=src if kind == "hand" else None,
+                doc=doc,
+                variant=p.get("variant", 0),
+                split="val" if T.is_val(doc) else "train",
+            )
+        )
     return out
 
 
@@ -93,6 +104,7 @@ def form3k_page(job, rng, cfg):
     """A form of the plan filled with its answers (Reject when it has no prepared fields or answers)."""
     global _FORMS
     from dspages.multilang.filledforms import fill_window
+
     if _FORMS is None:
         meta = usable_forms()
         ans = {}
@@ -127,8 +139,13 @@ def content_box(gray, boxes, ink_too=True):
     ink = (gray < np.median(gray) - 40) if ink_too else np.zeros(gray.shape, bool)
     ys, xs = np.nonzero(ink)
     H, W = gray.shape
-    x0, y0, x1, y1 = ((np.percentile(xs, 0.1), np.percentile(ys, 0.1), np.percentile(xs, 99.9), np.percentile(ys, 99.9)) if len(xs) > 50
-                      else (W, H, 0, 0) if boxes else (0, 0, W, H))
+    x0, y0, x1, y1 = (
+        (np.percentile(xs, 0.1), np.percentile(ys, 0.1), np.percentile(xs, 99.9), np.percentile(ys, 99.9))
+        if len(xs) > 50
+        else (W, H, 0, 0)
+        if boxes
+        else (0, 0, W, H)
+    )
     for bx in boxes:
         x0, y0, x1, y1 = min(x0, bx[0]), min(y0, bx[1]), max(x1, bx[2]), max(y1, bx[3])
     return max(int(x0), 0), max(int(y0), 0), min(int(np.ceil(x1)), W), min(int(np.ceil(y1)), H)
@@ -139,7 +156,7 @@ def _squeeze(gray, sets, axis, keep, longest):
     ink = gray < np.median(gray) - 40
     for bs in sets:
         for b in bs:
-            ink[max(int(b[1]), 0):int(b[3]), max(int(b[0]), 0):int(b[2])] = True
+            ink[max(int(b[1]), 0) : int(b[3]), max(int(b[0]), 0) : int(b[2])] = True
     prof = ink.mean(axis=1 - axis) > 0.002
     cut, i, n = [], 0, len(prof)
     while i < n:
@@ -164,7 +181,11 @@ def _squeeze(gray, sets, axis, keep, longest):
     for bs in sets:
         nb = []
         for b in bs:
-            nb.append((b[0], moved(b[1], 0, 0), b[2], moved(b[3], 0, 0)) if axis == 0 else (moved(b[0], 0, 0), b[1], moved(b[2], 0, 0), b[3]))
+            nb.append(
+                (b[0], moved(b[1], 0, 0), b[2], moved(b[3], 0, 0))
+                if axis == 0
+                else (moved(b[0], 0, 0), b[1], moved(b[2], 0, 0), b[3])
+            )
         out.append(nb)
     return gray, out
 
@@ -233,6 +254,7 @@ def attempt(job, src, rng, cfg):
 def make(job):
     """One page of the plan, built once from its own source"""
     from dataclasses import replace
+
     cfg = replace(Config(), long_side=TARGET)
     cv2.setNumThreads(1)
     d = Path(job["out"]) / job["split"]
@@ -245,12 +267,23 @@ def make(job):
         return job["name"], f"rejected: {e}"
     for sub in ("images", "labels", "meta"):
         (d / sub).mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(d / "images" / f"{job['name']}.jpg"), img, [cv2.IMWRITE_JPEG_QUALITY, rng.randint(*cfg.jpeg_quality)])
+    cv2.imwrite(
+        str(d / "images" / f"{job['name']}.jpg"), img, [cv2.IMWRITE_JPEG_QUALITY, rng.randint(*cfg.jpeg_quality)]
+    )
     row = job.get("row") or {}
-    (d / "meta" / f"{job['name']}.json").write_text(json.dumps(dict(
-        lang=job["lang"], kind=job["kind"], doc=str(job["src"].get("doc", job["doc"])), hw=n_hw, print=n_pr,
-        src={k: job["src"][k] for k in ("fid", "path", "page", "id", "file") if k in job["src"]},
-        **{k: row.get(k) for k in ("persona", "style", "pen", "paper", "type") if k in row})))
+    (d / "meta" / f"{job['name']}.json").write_text(
+        json.dumps(
+            dict(
+                lang=job["lang"],
+                kind=job["kind"],
+                doc=str(job["src"].get("doc", job["doc"])),
+                hw=n_hw,
+                print=n_pr,
+                src={k: job["src"][k] for k in ("fid", "path", "page", "id", "file") if k in job["src"]},
+                **{k: row.get(k) for k in ("persona", "style", "pen", "paper", "type") if k in row},
+            )
+        )
+    )
     (d / "labels" / f"{job['name']}.txt").write_text("\n".join(rows) + "\n")
     return job["name"], "ok"
 
@@ -282,16 +315,15 @@ def main():
     print(len(js), "pages:", dict(Counter(j["kind"] for j in js)), flush=True)
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    (out / "data.yaml").write_text("path: .\ntrain: train/images\nval: val/images\nnames:\n  0: handwriting\n  1: print\n")
+    (out / "data.yaml").write_text(
+        "path: .\ntrain: train/images\nval: val/images\nnames:\n  0: handwriting\n  1: print\n"
+    )
     st, why = run(js, a.workers)
     print(dict(st), "rejected because:", dict(why))
 
 
 if __name__ == "__main__":
     main()
-
-
-SHARES = (("form", 9), ("hand", 9), ("notes", 9), ("print", 6))
 
 
 def targets(langs, total):
@@ -304,7 +336,7 @@ def split(n):
     whole = sum(w for _, w in SHARES)
     raw = {k: n * w / whole for k, w in SHARES}
     out = {k: int(v) for k, v in raw.items()}
-    for k in sorted(raw, key=lambda k: raw[k] - out[k], reverse=True)[:n - sum(out.values())]:
+    for k in sorted(raw, key=lambda k: raw[k] - out[k], reverse=True)[: n - sum(out.values())]:
         out[k] += 1
     return out
 

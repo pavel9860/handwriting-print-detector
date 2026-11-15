@@ -1,5 +1,6 @@
 """Detection set (YOLO: 0 handwriting, 1 print)
 python -m hwdet.data.detds OUT [--per-lang 40] [--workers 12] [--limit N]"""
+
 import argparse
 import hashlib
 import json
@@ -15,16 +16,11 @@ from dspages.multilang import pages
 from dspages.multilang.config import HW, Config
 from dspages.multilang.paths import DATA as D
 
+from .config import BLANK_FORMS, FORM_REUSE, MARGIN, PAPER, REUSE, SKEW, VAL_EVERY  # noqa: F401
+
 LAYOUTS, PARAS = D / "langds/det_layouts", D / "ga/paras.jsonl"
 FORMS = (D / "langds/forms_work", D / "langds/tr/forms_work")
 MIX = dict(notes=0.4, form=0.2, hand=0.3, print=0.1)
-REUSE = 3
-FORM_REUSE = 2
-BLANK_FORMS = 2
-PAPER = {"blank": 0.28, "lined": 0.20, "squared": 0.12, "margin": 0.08, "spiral": 0.08, "seyes": 0.08, "dotted": 0.08, "legal": 0.08}
-MARGIN = 0.05
-SKEW = ((0.7, 0.0, 0.4), (0.2, 1.0, 3.0), (0.1, 3.0, 8.0))
-VAL_EVERY = 10
 
 
 class Reject(Exception):
@@ -40,6 +36,7 @@ def look(gray, rng, cfg: Config, on_paper):
     img = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB) if gray.ndim == 2 else gray
     if not on_paper and rng.random() < cfg.p_paper:
         from hwsynth.page import paper
+
         H, W = img.shape[:2]
         sheet = np.clip(paper((H, W), np.random.default_rng(rng.getrandbits(32)), None, cfg.scan_dpi, 0.0), 0, 1)
         sheet = sheet[..., None] if sheet.ndim == 2 else sheet
@@ -51,7 +48,9 @@ def rotate(img, boxes_sets, deg):
     """img and its box lists turned by deg (counter-clockwise), the corners cut off filled with the page's paper tone"""
     H, W = img.shape[:2]
     M = cv2.getRotationMatrix2D((W / 2, H / 2), deg, 1.0)
-    out = cv2.warpAffine(img, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=int(np.median(img)))
+    out = cv2.warpAffine(
+        img, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=int(np.median(img))
+    )
     turned = []
     for boxes in boxes_sets:
         bs = []
@@ -124,6 +123,7 @@ def load_layouts():
     """The rendered layouts (detlayouts) with the script of their words."""
     from dspages.multilang.detlayouts import load
     from hwsynth.scripts import text_script
+
     out = []
     for r in load():
         if not r.get("script"):
@@ -135,6 +135,7 @@ def load_layouts():
 def passages():
     """{lang: [passage of ga/paras.jsonl without references]} for handwritten pages."""
     from dspages.multilang.dettext import CITE
+
     out = defaultdict(list)
     for line in open(PARAS):
         p = json.loads(line)
@@ -148,12 +149,14 @@ def sources():
     """{lang: {kind: [source, ...]}} of the layouts, the forms with answers and the passages."""
     from dspages.multilang.detlayouts import load
     from dspages.multilang.dettext import CITE
+
     src = defaultdict(lambda: defaultdict(list))
     assign = D / "langds/tr/assign.json"
     translated = {f["doc"] for fs in json.loads(assign.read_text()).values() for f in fs} if assign.exists() else set()
     flagged = D / "langds/layout_hw_flagged.json"
     skip = {k for k, v in json.loads(flagged.read_text()).items() if v != "clean"} if flagged.exists() else set()
     from hwsynth.scripts import text_script
+
     for r in load():
         if r["doc"] not in translated and r["id"] not in skip:
             if not r.get("script"):
@@ -171,15 +174,24 @@ def sources():
         a = {k: v for k, v in answers.get(fid, {}).items() if isinstance(v, str) and v.strip()}
         p = verified.get(fid)
         mp = Path(m["path"])
-        if p is None or len(a) < 3 or (mp.parent.name == "filled_forms" and fid not in clean) or "handwritten" in mp.name:
+        if (
+            p is None
+            or len(a) < 3
+            or (mp.parent.name == "filled_forms" and fid not in clean)
+            or "handwritten" in mp.name
+        ):
             continue
         src[m["lang"]]["form"].append(dict(fid=fid, meta=m, answers=a, path=p, doc=mp.name.split("_")[0]))
-    tr_src = {f"{l}/{f['doc']}.pdf": (f["doc"], int(f["page"])) for l, fs in
-              (json.loads(assign.read_text()).items() if assign.exists() else []) for f in fs}
+    tr_src = {
+        f"{l}/{f['doc']}.pdf": (f["doc"], int(f["page"]))
+        for l, fs in (json.loads(assign.read_text()).items() if assign.exists() else [])
+        for f in fs
+    }
 
     def key(path, page):
         p = Path(path)
         return tr_src.get(f"{p.parent.name}/{p.name}", (p.name.split("_")[0], int(page)))
+
     keys = {(r["doc"], int(r["page"])) for v in src.values() for r in v["layout"]}
     keys |= {key(f["path"], f["meta"]["page"]) for v in src.values() for f in v["form"]}
     E = page_vectors(keys)
@@ -190,7 +202,10 @@ def sources():
         frm = v["form"]
         blank = [f for f in frm if "forms_blank" in f["meta"]["path"]][:BLANK_FORMS]
         frm = [f for f in frm if "forms_blank" not in f["meta"]["path"]]
-        frm = diverse(frm, np.stack([E.get(key(f["path"], f["meta"]["page"]), zero) for f in frm]) if frm else None) + blank
+        frm = (
+            diverse(frm, np.stack([E.get(key(f["path"], f["meta"]["page"]), zero) for f in frm]) if frm else None)
+            + blank
+        )
         v["form"] = frm
     for line in open(PARAS):
         p = json.loads(line)
@@ -212,6 +227,7 @@ def jobs(per_lang):
         n["hand"] = per_lang - sum(n.values()) if s["hand"] else 0
         if not s["hand"]:
             n["notes"] = min(per_lang - n["print"] - n["form"], REUSE * len(lay) - n["print"])
+
         def rounds(pool, once=()):
             p, first = list(pool), True
             while True:
@@ -220,10 +236,16 @@ def jobs(per_lang):
                     rng.shuffle(p)  # noqa: B023
                 yield from p
                 first = False
+
         layout_seq = rounds(lay) if lay else None
         once = {f["fid"] for f in frm if "forms_blank" in f["meta"]["path"]}
         hand_rows = plan_rows(lang, max(0, n["hand"]), s["hand"]) if s["hand"] else []
-        seqs = dict(notes=layout_seq, print=layout_seq, form=rounds(frm, once) if frm else None, hand=rounds(s["hand"]) if s["hand"] else None)
+        seqs = dict(
+            notes=layout_seq,
+            print=layout_seq,
+            form=rounds(frm, once) if frm else None,
+            hand=rounds(s["hand"]) if s["hand"] else None,
+        )
         used = Counter()
         for kind, k in n.items():
             for j in range(max(0, k)):
@@ -234,8 +256,18 @@ def jobs(per_lang):
                 if kind == "hand":
                     src = dict(hand_rows[j])
                     doc = src["doc"]
-                out.append(dict(name=f"{lang}_{kind}_{j:03d}", lang=lang, kind=kind, src=src, doc=doc, variant=used[key],
-                                split="val" if is_val(doc) else "train", row=hand_rows[j] if kind == "hand" else None))
+                out.append(
+                    dict(
+                        name=f"{lang}_{kind}_{j:03d}",
+                        lang=lang,
+                        kind=kind,
+                        src=src,
+                        doc=doc,
+                        variant=used[key],
+                        split="val" if is_val(doc) else "train",
+                        row=hand_rows[j] if kind == "hand" else None,
+                    )
+                )
     return out
 
 
@@ -245,6 +277,7 @@ def plan_rows(lang, n, texts):
         return []
     from dspages.hand import paper as paper_mod
     from dspages.hand import plan as P
+
     for k in P.PAPER_BY:
         if k[1] != "table":
             P.PAPER_BY[k] = dict(PAPER)
@@ -283,27 +316,38 @@ def plan_rows(lang, n, texts):
 def hand_page(job, rng, cfg):
     from dspages.hand import page
     from dspages.multilang.handpages import line_boxes, reject_reason
+
     r = dict(job["row"], seed=int(job["row"]["seed"]) + rng.randrange(1000))
     rgb, meta = page.make(r, r["items"])
     why = reject_reason(rgb, meta, cfg)
     if why:
         raise Reject(why)
-    words = [tuple(w[1]) for w in meta["words"] if w[1][2] - w[1][0] > cfg.min_box_px and w[1][3] - w[1][1] > cfg.min_box_px]
+    words = [
+        tuple(w[1]) for w in meta["words"] if w[1][2] - w[1][0] > cfg.min_box_px and w[1][3] - w[1][1] > cfg.min_box_px
+    ]
     k = cfg.long_side / max(rgb.shape[:2])
-    gray = cv2.cvtColor(cv2.resize(rgb, (round(rgb.shape[1] * k), round(rgb.shape[0] * k)), interpolation=cv2.INTER_AREA), cv2.COLOR_RGB2GRAY)
+    gray = cv2.cvtColor(
+        cv2.resize(rgb, (round(rgb.shape[1] * k), round(rgb.shape[0] * k)), interpolation=cv2.INTER_AREA),
+        cv2.COLOR_RGB2GRAY,
+    )
     return gray, [tuple(v * k for v in b) for b in line_boxes(words)], [], True
 
 
 def layout_page(job, rng, cfg):
     from dspages.multilang.notes import annotate
+
     r = job["src"]
     gray = cv2.imread(str(LAYOUTS / r["file"]), 0)
     if job["kind"] == "print":
         return gray, [], r["prints"], False
     from dspages.hand.plan import EXPECT
+
     script = EXPECT.get(job["lang"], r["script"])
-    same = (r["script"] == script or {r["script"], script} <= {"Han", "Hiragana", "Katakana"}
-            or job["lang"] in ("sr", "uz", "tg", "az", "ku", "mn", "kk", "ky"))
+    same = (
+        r["script"] == script
+        or {r["script"], script} <= {"Han", "Hiragana", "Katakana"}
+        or job["lang"] in ("sr", "uz", "tg", "az", "ku", "mn", "kk", "ky")
+    )
     words = r["words"] if same and r.get("text_ok", True) else []
     img, hw = annotate(gray, r["prints"], words, job["lang"], script, cfg, rng)
     if not hw:
@@ -313,6 +357,7 @@ def layout_page(job, rng, cfg):
 
 def form_page(job, rng, cfg):
     from dspages.multilang.filledforms import fill_window
+
     f = job["src"]
     res = fill_window(f["fid"], f["meta"], f["answers"], job["variant"], f["path"])
     if res is None:
@@ -347,9 +392,12 @@ def make(job):
     rows = pages.yolo_rows([(HW, hw), (1, prints)], W, H, cfg)
     for sub in ("images", "labels", "meta"):
         (d / sub).mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(d / "images" / f"{job['name']}.jpg"), img, [cv2.IMWRITE_JPEG_QUALITY, rng.randint(*cfg.jpeg_quality)])
-    (d / "meta" / f"{job['name']}.json").write_text(json.dumps(dict(lang=job["lang"], kind=job["kind"], doc=job["doc"], hw=len(hw),
-                                                                     print=len(prints))))
+    cv2.imwrite(
+        str(d / "images" / f"{job['name']}.jpg"), img, [cv2.IMWRITE_JPEG_QUALITY, rng.randint(*cfg.jpeg_quality)]
+    )
+    (d / "meta" / f"{job['name']}.json").write_text(
+        json.dumps(dict(lang=job["lang"], kind=job["kind"], doc=job["doc"], hw=len(hw), print=len(prints)))
+    )
     (d / "labels" / f"{job['name']}.txt").write_text("\n".join(rows) + "\n")
     return job["name"], "ok"
 
@@ -362,12 +410,20 @@ def main():
     ap.add_argument("--limit", type=int, default=0)
     a = ap.parse_args()
     js = [dict(j, out=a.out) for j in jobs(a.per_lang)]
-    print(len(js), "pages planned:", dict(Counter(j["kind"] for j in js)), dict(Counter(j["split"] for j in js)), flush=True)
+    print(
+        len(js),
+        "pages planned:",
+        dict(Counter(j["kind"] for j in js)),
+        dict(Counter(j["split"] for j in js)),
+        flush=True,
+    )
     if a.limit:
         js = random.Random(0).sample(js, a.limit)
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    (out / "data.yaml").write_text("path: .\ntrain: train/images\nval: val/images\nnames:\n  0: handwriting\n  1: print\n")
+    (out / "data.yaml").write_text(
+        "path: .\ntrain: train/images\nval: val/images\nnames:\n  0: handwriting\n  1: print\n"
+    )
     st = Counter()
     with ProcessPoolExecutor(a.workers, mp_context=get_context("spawn")) as ex:
         for i, (name, s) in enumerate(ex.map(make, js, chunksize=2)):

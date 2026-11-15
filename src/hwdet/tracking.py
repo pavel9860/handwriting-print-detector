@@ -1,5 +1,6 @@
 """Run tracking: runs/<name>/run.json (code commit, package versions, config, dataset version, metrics, weight hashes);
 also logged to MLflow when MLFLOW_TRACKING_URI is set and mlflow is installed."""
+
 import json
 import os
 import platform
@@ -33,9 +34,18 @@ def record(run_dir, config, metrics=None, data=None, weights=(), **extra):
     """Writes run_dir/run.json and returns it."""
     run_dir = Path(run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
-    rec = dict(hwdet=__version__, time=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), git=git_state(), python=platform.python_version(),
-               packages=versions(), config=config, data=data, metrics=metrics or {},
-               weights={Path(w).name: sha256(w) for w in weights if Path(w).exists()}, **extra)
+    rec = dict(
+        hwdet=__version__,
+        time=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        git=git_state(),
+        python=platform.python_version(),
+        packages=versions(),
+        config=config,
+        data=data,
+        metrics=metrics or {},
+        weights={Path(w).name: sha256(w) for w in weights if Path(w).exists()},
+        **extra,
+    )
     (run_dir / "run.json").write_text(json.dumps(rec, indent=1, default=str))
     _mlflow(rec, run_dir)
     return rec

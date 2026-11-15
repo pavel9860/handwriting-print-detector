@@ -1,4 +1,5 @@
 """Box matching and the per-class / per-page counts."""
+
 import numpy as np
 import pytest
 
@@ -40,5 +41,6 @@ def test_counts_summary():
 
 def test_page_kind_from_name(tmp_path):
     from hwdet.evaluate import page_kind
+
     assert page_kind(tmp_path / "x.json", "af_form_005") == "form"
     assert page_kind(tmp_path / "x.json", "real_uk_1e25a3181e24_0") == "real_hw"

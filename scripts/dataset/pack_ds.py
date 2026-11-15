@@ -1,5 +1,6 @@
 """Checks a detection set (hwdet.data.pack.validate) and packs it into uncompressed .npz shards with index.json
 python scripts/forms/pack_ds.py SET_DIR OUT_DIR KAGGLE_ID [TITLE]"""
+
 import json
 import sys
 from pathlib import Path
@@ -38,9 +39,13 @@ def main():
     langs = set()
     for s in index["shards"]:
         langs |= set(dspack.load(out / s["file"])["lang"])
-    counts = ", ".join(f"{sp}: {sum(s['images'] for s in index['shards'] if s['split'] == sp)} pages" for sp in dspack.SPLITS)
+    counts = ", ".join(
+        f"{sp}: {sum(s['images'] for s in index['shards'] if s['split'] == sp)} pages" for sp in dspack.SPLITS
+    )
     (out / "README.md").write_text(TEXT.format(title=title, langs=len(langs), counts=counts))
-    (out / "dataset-metadata.json").write_text(json.dumps(dict(title=title, id=kid, licenses=[{"name": "other"}], isPrivate=True)))
+    (out / "dataset-metadata.json").write_text(
+        json.dumps(dict(title=title, id=kid, licenses=[{"name": "other"}], isPrivate=True))
+    )
     print(len(index["shards"]), "shards;", counts, "->", out)
 
 

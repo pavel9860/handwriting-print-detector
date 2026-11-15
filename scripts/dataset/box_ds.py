@@ -1,4 +1,5 @@
 """Draws the labels of a detection set on its images (handwriting green, print blue). python scripts/forms/box_ds.py DS_DIR OUT_DIR"""
+
 import sys
 from pathlib import Path
 
@@ -16,7 +17,12 @@ for split in ("train", "val"):
             if not row.strip():
                 continue
             c, cx, cy, w, h = row.split()[:5]
-            x0, y0, x1, y1 = (int((float(cx) - float(w) / 2) * W), int((float(cy) - float(h) / 2) * H), int((float(cx) + float(w) / 2) * W), int((float(cy) + float(h) / 2) * H))
+            x0, y0, x1, y1 = (
+                int((float(cx) - float(w) / 2) * W),
+                int((float(cy) - float(h) / 2) * H),
+                int((float(cx) + float(w) / 2) * W),
+                int((float(cy) + float(h) / 2) * H),
+            )
             cv2.rectangle(im, (x0, y0), (x1, y1), (0, 160, 0) if c == "0" else (200, 80, 0), 2 if c == "0" else 1)
             hw += c == "0"
             pr += c != "0"

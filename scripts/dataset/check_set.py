@@ -1,5 +1,6 @@
 """Read-only report of a detection set
 python scripts/forms/check_set.py SET_DIR"""
+
 import collections
 import glob
 import json
@@ -9,7 +10,13 @@ import sys
 import cv2
 
 D = sys.argv[1].rstrip("/") + "/"
-kinds, sizes, hw, langs, pr = collections.Counter(), collections.Counter(), collections.defaultdict(list), set(), collections.Counter()
+kinds, sizes, hw, langs, pr = (
+    collections.Counter(),
+    collections.Counter(),
+    collections.defaultdict(list),
+    set(),
+    collections.Counter(),
+)
 none = collections.Counter()
 for lab in glob.glob(D + "*/labels/*.txt"):
     m = json.load(open(lab.replace("labels", "meta").replace(".txt", ".json")))
@@ -25,5 +32,7 @@ print("pages", sum(kinds.values()), dict(kinds), "| languages", len(langs), "| s
 for k, v in sorted(hw.items()):
     v = sorted(v)
     if v:
-        print(f"{k:8} hw boxes {len(v):6} | height % of page: min {v[0]:.2f}  5th pct {v[len(v) // 20]:.2f}  median {st.median(v):.2f} | under 2%: {100 * sum(x < 2 for x in v) / len(v):.1f}% | pages without hw: {none[k]}")
+        print(
+            f"{k:8} hw boxes {len(v):6} | height % of page: min {v[0]:.2f}  5th pct {v[len(v) // 20]:.2f}  median {st.median(v):.2f} | under 2%: {100 * sum(x < 2 for x in v) / len(v):.1f}% | pages without hw: {none[k]}"
+        )
 print("print boxes", dict(pr))

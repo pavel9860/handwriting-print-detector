@@ -1,10 +1,11 @@
 """hwdet command line.
-  hwdet predict IMAGE... [--model hwdet-s] [--conf 0.4] [--json]
-  hwdet models {list,pull NAME[@VERSION]}
-  hwdet data {manifest DS, validate DS, pack DS OUT}
-  hwdet train configs/train/hwdet-s.yaml [--device 0,1] [--epochs N]
-  hwdet eval MODEL DS [--split val] [--out metrics.json]
-  hwdet export MODEL [--format onnx]"""
+hwdet predict IMAGE... [--model hwdet-s] [--conf 0.4] [--json]
+hwdet models {list,pull NAME[@VERSION]}
+hwdet data {manifest DS, validate DS, pack DS OUT}
+hwdet train configs/train/hwdet-s.yaml [--device 0,1] [--epochs N]
+hwdet eval MODEL DS [--split val] [--out metrics.json]
+hwdet export MODEL [--format onnx]"""
+
 import argparse
 import json
 import logging
@@ -16,6 +17,7 @@ from . import __version__, registry
 
 def _predict(a):
     from .predict import Detector
+
     det = Detector(a.model, conf=a.conf, imgsz=a.imgsz, device=a.device, fmt=a.fmt)
     for path, r in zip(a.images, det.predict(a.images)):
         if a.json:
@@ -34,6 +36,7 @@ def _models(a):
 
 def _data(a):
     from .data import manifest, pack
+
     if a.action == "manifest":
         print(json.dumps(manifest.build(a.ds), indent=1))
     elif a.action == "validate":
@@ -46,6 +49,7 @@ def _data(a):
 
 def _train(a):
     from .train import train
+
     over = {k: v for k, v in dict(epochs=a.epochs, batch=a.batch).items() if v is not None}
     rec = train(a.config, out=a.out, device=a.device, **over)
     print(json.dumps(rec["metrics"].get("conf_0.4", rec["metrics"]), indent=1)[:2000])
@@ -53,6 +57,7 @@ def _train(a):
 
 def _eval(a):
     from . import evaluate
+
     weights, _ = registry.resolve(a.model)
     m = evaluate.dataset(weights, a.ds, split=a.split, imgsz=a.imgsz, device=a.device, limit=a.limit)
     if a.out:
@@ -62,8 +67,13 @@ def _eval(a):
 
 def _export(a):
     from ultralytics import YOLO
+
     weights, info = registry.resolve(a.model)
-    print(YOLO(str(weights)).export(format=a.format, imgsz=a.imgsz or (info.imgsz if info else 1024), dynamic=True, simplify=True))
+    print(
+        YOLO(str(weights)).export(
+            format=a.format, imgsz=a.imgsz or (info.imgsz if info else 1024), dynamic=True, simplify=True
+        )
+    )
 
 
 def main(argv=None):

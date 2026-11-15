@@ -29,10 +29,10 @@ Weights are downloaded on first use from the GitHub release and checked against 
 ```python
 from hwdet import Detector
 
-det = Detector("hwdet-s")                      # latest version; pin with "hwdet-s@1.0.0" or pass a .pt / .onnx path
-page = det.predict("scan.jpg")                 # path, PIL image or BGR array; a list gives a list
+det = Detector("hwdet-s")  # latest version; pin with "hwdet-s@1.0.0" or pass a .pt / .onnx path
+page = det.predict("scan.jpg")  # path, PIL image or BGR array; a list gives a list
 print(page.has_handwriting(), len(page.handwriting))
-for b in page.boxes:                           # sorted by confidence
+for b in page.boxes:  # sorted by confidence
     print(b.label, b.conf, b.xyxy)
 ```
 ```bash
